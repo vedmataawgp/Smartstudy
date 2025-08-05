@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}My Doubts - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-user me-2"></i>My Doubts</h2>
+                <a href="{% url 'doubts:submit' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Submit New Doubt
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if doubts %}
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <i class="fas fa-list fa-2x text-primary mb-2"></i>
+                    <h4>{{ doubts.count }}</h4>
+                    <p class="text-muted mb-0">Total Doubts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-secondary">
+                <div class="card-body">
+                    <i class="fas fa-hourglass-half fa-2x text-secondary mb-2"></i>
+                    <h4>{{ doubts|length|sub:doubts.resolved.count|sub:doubts.in_progress.count }}</h4>
+                    <p class="text-muted mb-0">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h4>{{ doubts|filter_by_status:"in_progress"|length }}</h4>
+                    <p class="text-muted mb-0">In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4>{{ doubts|filter_by_status:"resolved"|length }}</h4>
+                    <p class="text-muted mb-0">Resolved</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doubts List -->
+    <div class="row">
+        <div class="col-12">
+            {% for doubt in doubts %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    {% if doubt.status == 'resolved' %}
+                                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                                    {% elif doubt.status == 'in_progress' %}
+                                        <i class="fas fa-clock fa-2x text-warning"></i>
+                                    {% else %}
+                                        <i class="fas fa-hourglass-half fa-2x text-secondary"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-2">
+                                        <a href="{% url 'doubts:detail' doubt.id %}" class="text-decoration-none">
+                                            {{ doubt.title }}
+                                        </a>
+                                    </h5>
+                                    <p class="text-muted mb-2">{{ doubt.description|truncatewords:25 }}</p>
+                                    <div class="d-flex align-items-center text-muted">
+                                        <small>
+                                            <i class="fas fa-calendar me-1"></i>{{ doubt.created_at|date:"M d, Y" }}
+                                        </small>
+                                        <span class="mx-2">•</span>
+                                        <small>
+                                            <i class="fas fa-clock me-1"></i>{{ doubt.created_at|timesince }} ago
+                                        </small>
+                                        {% if doubt.teacher %}
+                                        <span class="mx-2">•</span>
+                                        <small>
+                                            <i class="fas fa-chalkboard-teacher me-1"></i>{{ doubt.teacher.get_full_name|default:doubt.teacher.username }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <div class="mb-2">
+                                <span class="badge bg-{% if doubt.status == 'resolved' %}success{% elif doubt.status == 'in_progress' %}warning{% else %}secondary{% endif %} fs-6">
+                                    {{ doubt.get_status_display }}
+                                </span>
+                            </div>
+                            
+                            {% if doubt.resolved_at %}
+                            <div class="mb-2">
+                                <small class="text-success">
+                                    <i class="fas fa-check me-1"></i>Resolved {{ doubt.resolved_at|timesince }} ago
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'doubts:detail' doubt.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                                {% if doubt.status == 'resolved' %}
+                                <a href="{% url 'doubts:detail' doubt.id %}" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-lightbulb me-1"></i>Solution
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if doubt.image %}
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <img src="{{ doubt.image.url }}" alt="Doubt image" class="img-thumbnail" style="max-height: 100px;">
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">&laquo; First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="row">
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+            <h4>No doubts submitted yet</h4>
+            <p class="text-muted">Submit your first doubt to get help from our expert teachers.</p>
+            <a href="{% url 'doubts:submit' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>Submit Your First Doubt
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

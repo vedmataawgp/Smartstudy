@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}DPP Results - {{ attempt.dpp.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-chart-line me-2"></i>{{ attempt.dpp.title }} - Results</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3 text-center">
+                            <h5>Score</h5>
+                            <h3 class="text-primary">{{ attempt.score }}/{{ attempt.total_marks }}</h3>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h5>Percentage</h5>
+                            <h3 class="text-success">{{ attempt.percentage|floatformat:1 }}%</h3>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h5>Time Taken</h5>
+                            <h3>{{ attempt.time_taken_minutes }} min</h3>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h5>Status</h5>
+                            <h3 class="{% if attempt.percentage >= 60 %}text-success{% else %}text-danger{% endif %}">
+                                {% if attempt.percentage >= 60 %}Pass{% else %}Fail{% endif %}
+                            </h3>
+                        </div>
+                    </div>
+
+                    <h5>Question-wise Analysis:</h5>
+                    {% for answer in answers %}
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span>Q{{ forloop.counter }}: {{ answer.question.text|truncatechars:50 }}</span>
+                                <span class="badge {% if answer.is_correct %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if answer.is_correct %}Correct{% else %}Wrong{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="mt-4">
+                        <a href="{% url 'batches:dpp_detail' attempt.dpp.id %}" class="btn btn-primary">Back to DPP</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

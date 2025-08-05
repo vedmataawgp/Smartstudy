@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ batch.name }} Content - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'batches:my_batches' %}">My Batches</a></li>
+                    <li class="breadcrumb-item active">{{ batch.name }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1>{{ batch.name }}</h1>
+                            <p class="text-muted mb-0">{{ batch.category.name }}</p>
+                        </div>
+                        <span class="badge bg-success fs-6">Enrolled</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if batch.subjects.all %}
+    <div class="row">
+        {% for subject in batch.subjects.all %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-book me-2"></i>{{ subject.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if subject.description %}
+                        <p class="text-muted">{{ subject.description }}</p>
+                    {% endif %}
+                    
+                    {% if subject.chapters.all %}
+                        <h6>Chapters:</h6>
+                        <div class="list-group list-group-flush">
+                            {% for chapter in subject.chapters.all %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ chapter.name }}</strong>
+                                    {% if chapter.description %}
+                                        <br><small class="text-muted">{{ chapter.description }}</small>
+                                    {% endif %}
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm" disabled>
+                                    <i class="fas fa-play me-1"></i>Start
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No chapters available yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-book fa-3x text-muted mb-3"></i>
+        <h4>No subjects available</h4>
+        <p class="text-muted">Content is being prepared. Please check back later.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+<div class="comment mb-3 p-3 border rounded">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+            <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+            <small class="text-muted ms-2">{{ comment.created_at|timesince }} ago</small>
+        </div>
+        <div class="comment-actions">
+            <button class="btn btn-sm btn-outline-success like-btn" data-comment-id="{{ comment.id }}" data-action="like">
+                <i class="fas fa-thumbs-up"></i> <span class="likes-count">{{ comment.likes_count }}</span>
+            </button>
+            <button class="btn btn-sm btn-outline-danger dislike-btn ms-1" data-comment-id="{{ comment.id }}" data-action="dislike">
+                <i class="fas fa-thumbs-down"></i> <span class="dislikes-count">{{ comment.dislikes_count }}</span>
+            </button>
+        </div>
+    </div>
+    
+    <p class="mb-2">{{ comment.text|linebreaks }}</p>
+    
+    <button class="btn btn-sm btn-outline-primary reply-btn" data-comment-id="{{ comment.id }}">
+        <i class="fas fa-reply"></i> Reply
+    </button>
+    
+    <!-- Reply Form (Hidden by default) -->
+    <div class="reply-form mt-3" id="reply-form-{{ comment.id }}" style="display: none;">
+        <form class="reply-form-element">
+            {% csrf_token %}
+            <div class="mb-2">
+                <textarea class="form-control" rows="2" placeholder="Write a reply..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+            <button type="button" class="btn btn-sm btn-secondary cancel-reply">Cancel</button>
+        </form>
+    </div>
+    
+    <!-- Replies -->
+    {% if comment.replies.all %}
+    <div class="replies mt-3 ms-4">
+        {% for reply in comment.replies.all %}
+            <div class="reply mb-2 p-2 bg-light rounded">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <strong>{{ reply.user.get_full_name|default:reply.user.username }}</strong>
+                    <small class="text-muted">{{ reply.created_at|timesince }} ago</small>
+                </div>
+                <p class="mb-0">{{ reply.text|linebreaks }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Like/Dislike functionality
+document.querySelectorAll('.like-btn, .dislike-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const commentId = this.dataset.commentId;
+        const action = this.dataset.action;
+        
+        fetch(`/batches/comment/${commentId}/toggle-like/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: new URLSearchParams({ 'action': action })
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.closest('.comment').querySelector('.likes-count').textContent = data.likes_count;
+            this.closest('.comment').querySelector('.dislikes-count').textContent = data.dislikes_count;
+        });
+    });
+});
+
+// Reply functionality
+document.querySelectorAll('.reply-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const commentId = this.dataset.commentId;
+        const replyForm = document.getElementById(`reply-form-${commentId}`);
+        replyForm.style.display = replyForm.style.display === 'none' ? 'block' : 'none';
+    });
+});
+
+document.querySelectorAll('.cancel-reply').forEach(button => {
+    button.addEventListener('click', function() {
+        this.closest('.reply-form').style.display = 'none';
+    });
+});
+</script>

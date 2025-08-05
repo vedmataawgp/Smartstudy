@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lecture.title }} - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'courses:list' %}">Courses</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'courses:subject_detail' lecture.chapter.subject.id %}">{{ lecture.chapter.subject.name }}</a></li>
+                    <li class="breadcrumb-item active">{{ lecture.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h1 class="mb-3">{{ lecture.title }}</h1>
+                    <p class="text-muted mb-3">{{ lecture.chapter.subject.name }} - {{ lecture.chapter.title }}</p>
+                    
+                    <!-- Video Player Placeholder -->
+                    <div class="ratio ratio-16x9 mb-3">
+                        {% if lecture.video_url %}
+                            <iframe src="{{ lecture.video_url }}" allowfullscreen></iframe>
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center">
+                                <div class="text-center">
+                                    <i class="fas fa-play-circle fa-4x text-muted mb-3"></i>
+                                    <h5>Video Coming Soon</h5>
+                                    <p class="text-muted">This lecture video will be available shortly.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Progress Tracking -->
+                    {% if progress %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Progress</span>
+                            <span>{{ progress.watched_duration|floatformat:0 }}/{{ lecture.duration|default:0 }} min</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {% if lecture.duration %}{{ progress.watched_duration|div:lecture.duration|mul:100 }}%{% else %}0%{% endif %}"
+                                 aria-valuenow="{% if lecture.duration %}{{ progress.watched_duration|div:lecture.duration|mul:100 }}{% else %}0{% endif %}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Lecture Description -->
+                    <div class="mb-4">
+                        <h5>About this lecture</h5>
+                        <p>{{ lecture.description|linebreaks }}</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 mb-3">
+                        {% if not progress.is_completed %}
+                        <form method="post" action="{% url 'courses:mark_complete' lecture.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Mark as Complete
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="btn btn-success disabled">
+                            <i class="fas fa-check me-2"></i>Completed
+                        </span>
+                        {% endif %}
+                        
+                        <a href="{% url 'doubts:submit' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-question-circle me-2"></i>Ask Doubt
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Study Materials -->
+            {% if pdfs %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-pdf me-2"></i>Study Materials</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for pdf in pdfs %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                <strong>{{ pdf.title }}</strong>
+                                {% if pdf.description %}
+                                    <br><small class="text-muted">{{ pdf.description }}</small>
+                                {% endif %}
+                            </div>
+                            <a href="{{ pdf.file.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download me-1"></i>Download
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Chapter Navigation -->
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h6 class="mb-0">{{ lecture.chapter.title }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for chapter_lecture in chapter_lectures %}
+                        <div class="list-group-item {% if chapter_lecture.id == lecture.id %}active{% endif %} p-2">
+                            <div class="d-flex align-items-center">
+                                {% if chapter_lecture.id == lecture.id %}
+                                    <i class="fas fa-play text-white me-2"></i>
+                                {% else %}
+                                    <i class="fas fa-play-circle text-muted me-2"></i>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    {% if chapter_lecture.id == lecture.id %}
+                                        <strong>{{ chapter_lecture.title }}</strong>
+                                    {% else %}
+                                        <a href="{% url 'courses:lecture_detail' chapter_lecture.id %}" 
+                                           class="text-decoration-none">{{ chapter_lecture.title }}</a>
+                                    {% endif %}
+                                    {% if chapter_lecture.duration %}
+                                        <br><small class="{% if chapter_lecture.id == lecture.id %}text-white-50{% else %}text-muted{% endif %}">
+                                            {{ chapter_lecture.duration }} min
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

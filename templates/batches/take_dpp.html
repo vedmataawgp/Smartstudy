@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}Taking {{ attempt.dpp.title }} - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center bg-warning text-dark">
+                    <h4 class="mb-0">{{ attempt.dpp.title }}</h4>
+                    <div id="timer" class="badge bg-danger fs-6">
+                        <i class="fas fa-clock me-1"></i>
+                        <span id="time-remaining">{{ attempt.dpp.time_limit_minutes }}:00</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="dpp-form">
+                        {% csrf_token %}
+                        
+                        {% for question in questions %}
+                        <div class="question-container mb-4 p-3 border rounded" id="question-{{ forloop.counter }}">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5>Question {{ forloop.counter }}</h5>
+                                <span class="badge bg-primary">{{ question.marks }} mark{{ question.marks|pluralize }}</span>
+                            </div>
+                            
+                            <p class="mb-3">{{ question.question_text|linebreaks }}</p>
+                            
+                            {% if question.question_type == 'mcq' %}
+                            <div class="options">
+                                {% with answer=answer_dict|get_item:question.id %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="A" id="q{{ question.id }}_a" 
+                                           {% if answer.selected_answer == 'A' %}checked{% endif %}>
+                                    <label class="form-check-label" for="q{{ question.id }}_a">
+                                        <strong>A)</strong> {{ question.option_a }}
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="B" id="q{{ question.id }}_b"
+                                           {% if answer.selected_answer == 'B' %}checked{% endif %}>
+                                    <label class="form-check-label" for="q{{ question.id }}_b">
+                                        <strong>B)</strong> {{ question.option_b }}
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="C" id="q{{ question.id }}_c"
+                                           {% if answer.selected_answer == 'C' %}checked{% endif %}>
+                                    <label class="form-check-label" for="q{{ question.id }}_c">
+                                        <strong>C)</strong> {{ question.option_c }}
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="D" id="q{{ question.id }}_d"
+                                           {% if answer.selected_answer == 'D' %}checked{% endif %}>
+                                    <label class="form-check-label" for="q{{ question.id }}_d">
+                                        <strong>D)</strong> {{ question.option_d }}
+                                    </label>
+                                </div>
+                                {% endwith %}
+                            </div>
+                            {% elif question.question_type == 'numerical' %}
+                            <div class="mb-3">
+                                <input type="number" class="form-control" name="question_{{ question.id }}" 
+                                       placeholder="Enter your answer" step="any">
+                            </div>
+                            {% elif question.question_type == 'true_false' %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="True" id="q{{ question.id }}_true">
+                                <label class="form-check-label" for="q{{ question.id }}_true">True</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="False" id="q{{ question.id }}_false">
+                                <label class="form-check-label" for="q{{ question.id }}_false">False</label>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if not forloop.last %}
+                        <hr>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('Are you sure you want to submit the DPP? This action cannot be undone.')">
+                                <i class="fas fa-paper-plane me-2"></i>Submit DPP
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h6 class="mb-0">Question Navigation</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2" id="question-nav">
+                        {% for question in questions %}
+                        <div class="col-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm w-100 question-nav-btn" 
+                                    data-question="{{ forloop.counter }}" onclick="scrollToQuestion({{ forloop.counter }})">
+                                {{ forloop.counter }}
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <div class="d-flex align-items-center mb-1">
+                                <div class="btn btn-outline-secondary btn-sm me-2" style="width: 20px; height: 20px;"></div>
+                                Not answered
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="btn btn-primary btn-sm me-2" style="width: 20px; height: 20px;"></div>
+                                Answered
+                            </div>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Timer functionality
+    const duration = {{ attempt.dpp.time_limit_minutes }} * 60;
+    let timeRemaining = duration;
+    
+    const timerElement = document.getElementById('time-remaining');
+    const timerContainer = document.getElementById('timer');
+    
+    function updateTimer() {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeRemaining <= 300) {
+            timerContainer.className = 'badge bg-danger fs-6';
+        } else if (timeRemaining <= 600) {
+            timerContainer.className = 'badge bg-warning fs-6';
+        }
+        
+        if (timeRemaining <= 0) {
+            alert('Time is up! The DPP will be submitted automatically.');
+            document.getElementById('dpp-form').submit();
+            return;
+        }
+        
+        timeRemaining--;
+    }
+    
+    const timerInterval = setInterval(updateTimer, 1000);
+    
+    // Update navigation buttons
+    function updateNavigation() {
+        const questions = document.querySelectorAll('.question-container');
+        questions.forEach((question, index) => {
+            const questionNum = index + 1;
+            const navBtn = document.querySelector(`[data-question="${questionNum}"]`);
+            const inputs = question.querySelectorAll('input[type="radio"]:checked, input[type="number"][value!=""]');
+            const isAnswered = inputs.length > 0;
+            
+            if (isAnswered) {
+                navBtn.className = 'btn btn-primary btn-sm w-100 question-nav-btn';
+            } else {
+                navBtn.className = 'btn btn-outline-secondary btn-sm w-100 question-nav-btn';
+            }
+        });
+    }
+    
+    // Add event listeners
+    document.querySelectorAll('input[type="radio"], input[type="number"]').forEach(input => {
+        input.addEventListener('change', updateNavigation);
+        input.addEventListener('input', updateNavigation);
+    });
+    
+    updateNavigation();
+    
+    window.scrollToQuestion = function(questionNum) {
+        const questionElement = document.getElementById(`question-${questionNum}`);
+        questionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    
+    // Prevent accidental page leave
+    window.addEventListener('beforeunload', function(e) {
+        e.preventDefault();
+        e.returnValue = 'Are you sure you want to leave? Your progress may be lost.';
+    });
+    
+    document.getElementById('dpp-form').addEventListener('submit', function() {
+        window.removeEventListener('beforeunload', function() {});
+        clearInterval(timerInterval);
+    });
+});
+</script>
+{% endblock %}

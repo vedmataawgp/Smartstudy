@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Pricing - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="text-center mb-5">Choose Your Plan</h1>
+            <p class="text-center text-muted mb-5">Affordable education for every student</p>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center p-4">
+                            <h3 class="card-title">Free</h3>
+                            <h2 class="text-primary">₹0</h2>
+                            <p class="text-muted">Forever</p>
+                            
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Access to free lectures</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Basic study materials</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Limited quiz attempts</li>
+                                <li class="mb-2"><i class="fas fa-times text-muted me-2"></i>Doubt resolution</li>
+                                <li class="mb-2"><i class="fas fa-times text-muted me-2"></i>Progress tracking</li>
+                            </ul>
+                            
+                            {% if not user.is_authenticated %}
+                                <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary w-100">Get Started</a>
+                            {% else %}
+                                <button class="btn btn-outline-primary w-100" disabled>Current Plan</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100 border-primary">
+                        <div class="card-header bg-primary text-white text-center">
+                            <h5 class="mb-0">Most Popular</h5>
+                        </div>
+                        <div class="card-body text-center p-4">
+                            <h3 class="card-title">Basic</h3>
+                            <h2 class="text-primary">₹799</h2>
+                            <p class="text-muted">Per Year</p>
+                            
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>All free features</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Premium lectures</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>All study materials</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited quizzes</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Basic doubt resolution</li>
+                            </ul>
+                            
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'courses:payment' %}" class="btn btn-primary w-100">Choose Plan</a>
+                            {% else %}
+                                <a href="{% url 'accounts:register' %}" class="btn btn-primary w-100">Choose Plan</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center p-4">
+                            <h3 class="card-title">Premium</h3>
+                            <h2 class="text-primary">₹1299</h2>
+                            <p class="text-muted">Per Year</p>
+                            
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>All basic features</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Priority doubt resolution</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced analytics</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Live sessions</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Personal mentor</li>
+                            </ul>
+                            
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'courses:payment' %}" class="btn btn-success w-100">Choose Plan</a>
+                            {% else %}
+                                <a href="{% url 'accounts:register' %}" class="btn btn-success w-100">Choose Plan</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <p class="text-muted">All plans include 30-day money-back guarantee</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

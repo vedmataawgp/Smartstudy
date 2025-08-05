@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>Search Results</h2>
+            {% if query %}
+                <p class="text-muted">Results for: "<strong>{{ query }}</strong>"</p>
+            {% else %}
+                <p class="text-muted">Please enter a search term.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if query %}
+        <!-- Subjects Results -->
+        {% if subjects %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <h4><i class="fas fa-book me-2"></i>Subjects ({{ subjects.count }})</h4>
+                <div class="row g-3">
+                    {% for subject in subjects %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ subject.name }}</h5>
+                                <p class="card-text">{{ subject.description|truncatewords:15 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">{{ subject.class_level }} {{ subject.stream }}</small>
+                                    <a href="{% url 'courses:subject_detail' subject.id %}" class="btn btn-primary btn-sm">View</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Lectures Results -->
+        {% if lectures %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <h4><i class="fas fa-play me-2"></i>Lectures ({{ lectures.count }})</h4>
+                <div class="list-group">
+                    {% for lecture in lectures %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ lecture.title }}</h5>
+                            <small>{{ lecture.duration }} min</small>
+                        </div>
+                        <p class="mb-1">{{ lecture.description|truncatewords:20 }}</p>
+                        <small class="text-muted">{{ lecture.chapter.subject.name }} - {{ lecture.chapter.title }}</small>
+                        <div class="mt-2">
+                            <a href="{% url 'courses:lecture_detail' lecture.id %}" class="btn btn-outline-primary btn-sm">Watch</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quizzes Results -->
+        {% if quizzes %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <h4><i class="fas fa-question-circle me-2"></i>Quizzes ({{ quizzes.count }})</h4>
+                <div class="row g-3">
+                    {% for quiz in quizzes %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ quiz.title }}</h5>
+                                <p class="card-text">{{ quiz.description|truncatewords:15 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">{{ quiz.time_limit }} min</small>
+                                    <a href="{% url 'quizzes:detail' quiz.id %}" class="btn btn-success btn-sm">Take Quiz</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not subjects and not lectures and not quizzes %}
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <div class="py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4>No results found</h4>
+                    <p class="text-muted">Try searching with different keywords or browse our courses.</p>
+                    <a href="{% url 'courses:list' %}" class="btn btn-primary">Browse Courses</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

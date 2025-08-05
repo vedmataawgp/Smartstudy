@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Welcome back, {{ user.get_full_name|default:user.username }}!</h1>
+                <span class="badge bg-primary fs-6">{{ user.role.get_name_display|default:"Student" }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% if user.is_student %}
+    <!-- Student Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-play fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ total_lectures }}</h5>
+                            <p class="card-text mb-0">Total Lectures</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ completed_lectures }}</h5>
+                            <p class="card-text mb-0">Completed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-question-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ quiz_attempts }}</h5>
+                            <p class="card-text mb-0">Quiz Attempts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ pending_doubts }}</h5>
+                            <p class="card-text mb-0">Pending Doubts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Quiz Attempts</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_attempts %}
+                        {% for attempt in recent_attempts %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ attempt.quiz.title }}</strong><br>
+                                <small class="text-muted">{{ attempt.started_at|date:"M d, Y" }}</small>
+                            </div>
+                            <span class="badge bg-primary">{{ attempt.score }}/{{ attempt.total_marks }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No quiz attempts yet.</p>
+                    {% endif %}
+                    <a href="{% url 'quizzes:my_attempts' %}" class="btn btn-outline-primary btn-sm">View All</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Doubts</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_doubts %}
+                        {% for doubt in recent_doubts %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ doubt.title }}</strong><br>
+                                <small class="text-muted">{{ doubt.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            <span class="badge bg-{% if doubt.status == 'resolved' %}success{% elif doubt.status == 'in_progress' %}warning{% else %}secondary{% endif %}">
+                                {{ doubt.get_status_display }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No doubts submitted yet.</p>
+                    {% endif %}
+                    <a href="{% url 'doubts:my_doubts' %}" class="btn btn-outline-primary btn-sm">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif user.is_teacher %}
+    <!-- Teacher Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-clock fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ assigned_doubts }}</h5>
+                            <p class="card-text mb-0">Assigned Doubts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ resolved_doubts }}</h5>
+                            <p class="card-text mb-0">Resolved Doubts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ pending_assignments }}</h5>
+                            <p class="card-text mb-0">Pending Assignments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif user.is_admin %}
+    <!-- Admin Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-users fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ total_users }}</h5>
+                            <p class="card-text mb-0">Total Users</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-graduation-cap fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ total_students }}</h5>
+                            <p class="card-text mb-0">Students</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-chalkboard-teacher fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ total_teachers }}</h5>
+                            <p class="card-text mb-0">Teachers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-question-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="card-title">{{ pending_doubts }}</h5>
+                            <p class="card-text mb-0">Pending Doubts</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% if user.is_student %}
+                            <div class="col-md-3">
+                                <a href="{% url 'courses:list' %}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-book me-2"></i>Browse Courses
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'quizzes:list' %}" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-question-circle me-2"></i>Take Quiz
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'doubts:submit' %}" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-plus me-2"></i>Submit Doubt
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-info w-100">
+                                    <i class="fas fa-user me-2"></i>Edit Profile
+                                </a>
+                            </div>
+                        {% elif user.is_teacher %}
+                            <div class="col-md-4">
+                                <a href="{% url 'doubts:teacher_dashboard' %}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i>Teacher Dashboard
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'doubts:list' %}" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-question-circle me-2"></i>View All Doubts
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-info w-100">
+                                    <i class="fas fa-user me-2"></i>Edit Profile
+                                </a>
+                            </div>
+                        {% elif user.is_admin %}
+                            <div class="col-md-3">
+                                <a href="/admin/" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-cog me-2"></i>Admin Panel
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'doubts:list' %}" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-question-circle me-2"></i>Manage Doubts
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'courses:list' %}" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-book me-2"></i>Manage Courses
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-info w-100">
+                                    <i class="fas fa-user me-2"></i>Edit Profile
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

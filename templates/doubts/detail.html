@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ doubt.title }} - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'doubts:list' %}">Doubts</a></li>
+                    <li class="breadcrumb-item active">{{ doubt.title|truncatechars:50 }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Doubt Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="mb-1">{{ doubt.title }}</h4>
+                            <div class="d-flex align-items-center text-muted">
+                                <small>
+                                    <i class="fas fa-user me-1"></i>{{ doubt.user.get_full_name|default:doubt.user.username }}
+                                </small>
+                                <span class="mx-2">•</span>
+                                <small>
+                                    <i class="fas fa-clock me-1"></i>{{ doubt.created_at|date:"M d, Y H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                        <span class="badge bg-{% if doubt.status == 'resolved' %}success{% elif doubt.status == 'in_progress' %}warning{% else %}secondary{% endif %} fs-6">
+                            {{ doubt.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Description:</h6>
+                        <p class="text-muted">{{ doubt.description|linebreaks }}</p>
+                    </div>
+                    
+                    {% if doubt.image %}
+                    <div class="mb-3">
+                        <h6>Attached Image:</h6>
+                        <div class="text-center">
+                            <img src="{{ doubt.image.url }}" alt="Doubt image" class="img-fluid rounded shadow-sm" style="max-height: 400px;">
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Resolution Section -->
+            {% if doubt.is_resolved %}
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Resolution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="fas fa-chalkboard-teacher fa-2x text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Resolved by: {{ doubt.teacher.get_full_name|default:doubt.teacher.username }}</h6>
+                            <small class="text-muted">{{ doubt.resolved_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                    </div>
+                    <div class="bg-light p-3 rounded">
+                        {{ doubt.resolution|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% elif doubt.status == 'in_progress' %}
+            <div class="card border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                    <h5>In Progress</h5>
+                    <p class="text-muted">
+                        {% if doubt.teacher %}
+                            This doubt has been assigned to {{ doubt.teacher.get_full_name|default:doubt.teacher.username }} and is being worked on.
+                        {% else %}
+                            This doubt is being processed by our teachers.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% else %}
+            <div class="card border-secondary">
+                <div class="card-body text-center">
+                    <i class="fas fa-hourglass-half fa-3x text-secondary mb-3"></i>
+                    <h5>Waiting for Teacher</h5>
+                    <p class="text-muted">Your doubt has been submitted and is waiting to be assigned to a teacher.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h6 class="mb-0">Doubt Information</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-user text-primary me-2"></i>
+                            <strong>Student:</strong> {{ doubt.user.get_full_name|default:doubt.user.username }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-calendar text-primary me-2"></i>
+                            <strong>Submitted:</strong> {{ doubt.created_at|date:"M d, Y" }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <strong>Time:</strong> {{ doubt.created_at|time:"H:i" }}
+                        </li>
+                        {% if doubt.teacher %}
+                        <li class="mb-2">
+                            <i class="fas fa-chalkboard-teacher text-primary me-2"></i>
+                            <strong>Teacher:</strong> {{ doubt.teacher.get_full_name|default:doubt.teacher.username }}
+                        </li>
+                        {% endif %}
+                        {% if doubt.resolved_at %}
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-primary me-2"></i>
+                            <strong>Resolved:</strong> {{ doubt.resolved_at|date:"M d, Y H:i" }}
+                        </li>
+                        {% endif %}
+                    </ul>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        {% if user.is_teacher and doubt.status == 'submitted' %}
+                        <form method="post" action="{% url 'doubts:teacher_dashboard' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="doubt_id" value="{{ doubt.id }}">
+                            <input type="hidden" name="action" value="assign_to_me">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-hand-paper me-2"></i>Assign to Me
+                            </button>
+                        </form>
+                        {% elif user.is_teacher and doubt.status == 'in_progress' and doubt.teacher == user %}
+                        <a href="{% url 'doubts:resolve' doubt.id %}" class="btn btn-warning w-100">
+                            <i class="fas fa-check me-2"></i>Resolve Doubt
+                        </a>
+                        {% endif %}
+                        
+                        {% if user.is_student %}
+                        <a href="{% url 'doubts:submit' %}" class="btn btn-primary w-100">
+                            <i class="fas fa-plus me-2"></i>Submit New Doubt
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'doubts:list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-list me-2"></i>All Doubts
+                        </a>
+                        
+                        {% if user.is_student %}
+                        <a href="{% url 'doubts:my_doubts' %}" class="btn btn-outline-info w-100">
+                            <i class="fas fa-user me-2"></i>My Doubts
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

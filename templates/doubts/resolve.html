@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Resolve Doubt - {{ doubt.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'doubts:list' %}">Doubts</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'doubts:detail' doubt.id %}">{{ doubt.title|truncatechars:30 }}</a></li>
+                    <li class="breadcrumb-item active">Resolve</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Original Doubt -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>Original Doubt
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="mb-3">{{ doubt.title }}</h6>
+                    <p class="text-muted mb-3">{{ doubt.description|linebreaks }}</p>
+                    
+                    {% if doubt.image %}
+                    <div class="text-center">
+                        <img src="{{ doubt.image.url }}" alt="Doubt image" class="img-fluid rounded shadow-sm" style="max-height: 300px;">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Resolution Form -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Provide Resolution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Tips for effective resolution:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Provide a clear, step-by-step explanation</li>
+                            <li>Include relevant formulas or concepts</li>
+                            <li>Use simple language that the student can understand</li>
+                            <li>Suggest additional resources if helpful</li>
+                        </ul>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.resolution.id_for_label }}" class="form-label">
+                                <i class="fas fa-edit me-1"></i>Resolution *
+                            </label>
+                            {{ form.resolution }}
+                            {% if form.resolution.errors %}
+                                <div class="text-danger mt-1">{{ form.resolution.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">Provide a detailed explanation to help the student understand the solution.</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'doubts:detail' doubt.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Doubt
+                            </a>
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to resolve this doubt? This action cannot be undone.')">
+                                <i class="fas fa-check me-2"></i>Resolve Doubt
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h6 class="mb-0">Student Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-user-circle fa-3x text-primary mb-2"></i>
+                        <h6>{{ doubt.user.get_full_name|default:doubt.user.username }}</h6>
+                        <small class="text-muted">{{ doubt.user.email }}</small>
+                    </div>
+                    
+                    <ul class="list-unstyled">
+                        {% if doubt.user.class_level %}
+                        <li class="mb-2">
+                            <i class="fas fa-graduation-cap text-primary me-2"></i>
+                            <strong>Class:</strong> {{ doubt.user.class_level }}
+                        </li>
+                        {% endif %}
+                        {% if doubt.user.stream %}
+                        <li class="mb-2">
+                            <i class="fas fa-stream text-primary me-2"></i>
+                            <strong>Stream:</strong> {{ doubt.user.stream }}
+                        </li>
+                        {% endif %}
+                        <li class="mb-2">
+                            <i class="fas fa-calendar text-primary me-2"></i>
+                            <strong>Joined:</strong> {{ doubt.user.date_joined|date:"M Y" }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-question-circle text-primary me-2"></i>
+                            <strong>Total Doubts:</strong> {{ doubt.user.doubts.count }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Doubt Timeline</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Submitted</h6>
+                                <small class="text-muted">{{ doubt.created_at|date:"M d, Y H:i" }}</small>
+                            </div>
+                        </div>
+                        
+                        {% if doubt.teacher %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Assigned</h6>
+                                <small class="text-muted">To {{ doubt.teacher.get_full_name|default:doubt.teacher.username }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Resolving...</h6>
+                                <small class="text-muted">In progress</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textarea
+    const textarea = document.getElementById('{{ form.resolution.id_for_label }}');
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+    
+    // Set initial height
+    textarea.style.height = textarea.scrollHeight + 'px';
+});
+</script>
+
+<style>
+#{{ form.resolution.id_for_label }} {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -23px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.timeline-content h6 {
+    margin-bottom: 2px;
+    font-size: 14px;
+}
+
+.timeline-content small {
+    font-size: 12px;
+}
+</style>
+{% endblock %}

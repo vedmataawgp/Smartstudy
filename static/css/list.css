@@ -1,0 +1,56 @@
+    .course-card {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+
+    .course-card:hover {
+        transform: scale(1.02);
+    }
+
+    .ribbon {
+        position: absolute;
+        top: 12px;
+        left: -10px;
+        background: #4a00e0;
+        color: #fff;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        transform: rotate(-45deg);
+        z-index: 2;
+    }
+
+    .course-banner {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .badge-custom {
+        font-size: 12px;
+        font-weight: 500;
+        margin-right: 6px;
+    }
+
+    .price-section del {
+        color: #888;
+    }
+
+    .price-final {
+        color: #7b2cbf;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .btn-buy {
+        background-color: #7b2cbf;
+        color: white;
+    }
+
+    .btn-buy:hover {
+        background-color: #5a189a;
+        color: white;
+    }

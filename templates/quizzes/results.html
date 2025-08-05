@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Quiz Results - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'quizzes:list' %}">Quizzes</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'quizzes:detail' quiz.id %}">{{ quiz.title }}</a></li>
+                    <li class="breadcrumb-item active">Results</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Results Summary -->
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="display-4 text-{% if attempt.percentage >= 80 %}success{% elif attempt.percentage >= 60 %}warning{% else %}danger{% endif %}">
+                                {{ attempt.percentage|floatformat:1 }}%
+                            </div>
+                            <p class="text-muted">Percentage</p>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="display-4 text-primary">{{ attempt.score }}</div>
+                            <p class="text-muted">Score</p>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="display-4 text-info">{{ attempt.total_marks }}</div>
+                            <p class="text-muted">Total Marks</p>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="display-4 text-secondary">{{ attempt.time_taken|default:"--" }}</div>
+                            <p class="text-muted">Minutes</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        {% if attempt.percentage >= 80 %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-trophy me-2"></i>
+                                <strong>Excellent!</strong> You performed exceptionally well.
+                            </div>
+                        {% elif attempt.percentage >= 60 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-thumbs-up me-2"></i>
+                                <strong>Good job!</strong> You have a solid understanding.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-book me-2"></i>
+                                <strong>Keep practicing!</strong> Review the topics and try again.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Results -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Detailed Results</h5>
+                </div>
+                <div class="card-body">
+                    {% for answer in answers %}
+                    <div class="mb-4 p-3 border rounded {% if answer.is_correct %}border-success bg-light-success{% else %}border-danger bg-light-danger{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6>Question {{ forloop.counter }}</h6>
+                            <div class="d-flex align-items-center">
+                                {% if answer.is_correct %}
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span class="badge bg-success">{{ answer.marks_obtained }}/{{ answer.question.marks }}</span>
+                                {% else %}
+                                    <i class="fas fa-times-circle text-danger me-2"></i>
+                                    <span class="badge bg-danger">0/{{ answer.question.marks }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <p class="mb-3">{{ answer.question.question_text|linebreaks }}</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Your Answer:</strong>
+                                {% if answer.selected_answer %}
+                                    <div class="mt-1 p-2 rounded {% if answer.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                                        <strong>{{ answer.selected_answer }})</strong> 
+                                        {% with options=answer.question.get_options %}
+                                            {{ options|get_item:answer.selected_answer }}
+                                        {% endwith %}
+                                    </div>
+                                {% else %}
+                                    <div class="mt-1 p-2 rounded bg-secondary text-white">
+                                        Not answered
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <strong>Correct Answer:</strong>
+                                <div class="mt-1 p-2 rounded bg-success text-white">
+                                    <strong>{{ answer.question.correct_answer }})</strong> 
+                                    {% with options=answer.question.get_options %}
+                                        {{ options|get_item:answer.question.correct_answer }}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if answer.question.explanation %}
+                        <div class="mt-3">
+                            <strong>Explanation:</strong>
+                            <div class="mt-1 p-2 bg-light rounded">
+                                {{ answer.question.explanation|linebreaks }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h6 class="mb-0">Quiz Information</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-book text-primary me-2"></i>
+                            <strong>Subject:</strong> {{ quiz.chapter.subject.name }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-list text-primary me-2"></i>
+                            <strong>Chapter:</strong> {{ quiz.chapter.title }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-calendar text-primary me-2"></i>
+                            <strong>Completed:</strong> {{ attempt.completed_at|date:"M d, Y H:i" }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <strong>Duration:</strong> {{ quiz.duration }} minutes
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-stopwatch text-primary me-2"></i>
+                            <strong>Time Taken:</strong> {{ attempt.time_taken|default:"Not recorded" }} minutes
+                        </li>
+                    </ul>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{% url 'quizzes:detail' quiz.id %}" class="btn btn-primary">
+                            <i class="fas fa-redo me-2"></i>Retake Quiz
+                        </a>
+                        <a href="{% url 'quizzes:list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-2"></i>All Quizzes
+                        </a>
+                        <a href="{% url 'quizzes:my_attempts' %}" class="btn btn-outline-info">
+                            <i class="fas fa-history me-2"></i>My Attempts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-light-success {
+    background-color: #d1e7dd !important;
+}
+
+.bg-light-danger {
+    background-color: #f8d7da !important;
+}
+</style>
+{% endblock %}

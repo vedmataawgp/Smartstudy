@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lecture.topic_name }} - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Video Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2>Day {{ lecture.day_number }}: {{ lecture.topic_name }}</h2>
+                    <p class="text-muted mb-3">{{ lecture.subject.name }} - {{ lecture.subject.batch.name }}</p>
+                    
+                    {% if lecture.get_embed_url %}
+                        <div class="ratio ratio-16x9 mb-3">
+                            <iframe src="{{ lecture.get_embed_url }}" allowfullscreen></iframe>
+                        </div>
+                    {% elif lecture.video_file %}
+                        <div class="ratio ratio-16x9 mb-3">
+                            <video controls class="w-100">
+                                <source src="{{ lecture.video_file.url }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    {% else %}
+                        <div class="ratio ratio-16x9 mb-3 bg-light d-flex align-items-center justify-content-center">
+                            <div class="text-center">
+                                <i class="fas fa-play-circle fa-4x text-muted mb-3"></i>
+                                <h5>Video Coming Soon</h5>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if lecture.description %}
+                        <p>{{ lecture.description|linebreaks }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Resources Section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Resources</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if lecture.lecture_pdf %}
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">Lecture Notes</h6>
+                                    <small class="text-muted">PDF Download</small>
+                                </div>
+                                <a href="{{ lecture.lecture_pdf.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if lecture.dpp %}
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-clipboard-list fa-2x text-warning me-3"></i>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">Daily Practice Problems</h6>
+                                    <small class="text-muted">{{ lecture.dpp.questions.count }} Questions</small>
+                                </div>
+                                <a href="{% url 'batches:dpp_detail' lecture.dpp.id %}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Comments</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Add Comment Form -->
+                    <form id="comment-form" class="mb-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea class="form-control" id="comment-text" rows="3" placeholder="Add your comment..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Post Comment</button>
+                    </form>
+                    
+                    <!-- Comments List -->
+                    <div id="comments-list">
+                        {% for comment in comments %}
+                            {% include 'batches/comment_item.html' with comment=comment %}
+                        {% empty %}
+                            <p class="text-muted">No comments yet. Be the first to comment!</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h6 class="mb-0">Lecture Information</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-calendar text-primary me-2"></i>
+                            <strong>Day:</strong> {{ lecture.day_number }}
+                        </li>
+                        {% if lecture.duration_minutes %}
+                        <li class="mb-2">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <strong>Duration:</strong> {{ lecture.duration_minutes }} minutes
+                        </li>
+                        {% endif %}
+                        <li class="mb-2">
+                            <i class="fas fa-book text-primary me-2"></i>
+                            <strong>Subject:</strong> {{ lecture.subject.name }}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <strong>Batch:</strong> {{ lecture.subject.batch.name }}
+                        </li>
+                    </ul>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        {% if lecture.dpp %}
+                        <a href="{% url 'batches:dpp_detail' lecture.dpp.id %}" class="btn btn-warning">
+                            <i class="fas fa-clipboard-list me-2"></i>Take DPP
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'batches:subject_detail' lecture.subject.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Subject
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('comment-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const text = document.getElementById('comment-text').value.trim();
+    if (!text) return;
+    
+    fetch('{% url "batches:add_comment" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: new URLSearchParams({
+            'content_type': 'lecture',
+            'object_id': '{{ lecture.id }}',
+            'text': text
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Purchase {{ batch.name }} - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-credit-card me-2"></i>Complete Purchase</h4>
+                </div>
+                <div class="card-body">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6>Order Summary</h6>
+                            <div class="d-flex justify-content-between">
+                                <span>{{ batch.name }} ({{ batch.category.name }})</span>
+                                <strong id="original-price">₹{{ batch.price }}</strong>
+                            </div>
+                            <div id="discount-info" class="text-success mt-2" style="display: none;">
+                                <div class="d-flex justify-content-between">
+                                    <span>Discount:</span>
+                                    <span id="discount-amount">-₹0</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between fw-bold">
+                                    <span>Final Amount:</span>
+                                    <span id="final-amount">₹{{ batch.price }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" id="purchase-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="referral_code" class="form-label">Referral Code (Optional)</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="referral_code" name="referral_code" placeholder="Enter referral code">
+                                <button type="button" class="btn btn-outline-primary" id="apply-referral">Apply</button>
+                            </div>
+                            <div id="referral-message" class="form-text"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Mode</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_mode" value="card" id="card" checked>
+                                <label class="form-check-label" for="card">Credit/Debit Card</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_mode" value="upi" id="upi">
+                                <label class="form-check-label" for="upi">UPI</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_mode" value="netbanking" id="netbanking">
+                                <label class="form-check-label" for="netbanking">Net Banking</label>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This is a demo payment. No actual payment will be processed.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'batches:detail' batch.id %}" class="btn btn-secondary">Back</a>
+                            <button type="submit" class="btn btn-success" id="pay-button">
+                                <i class="fas fa-lock me-2"></i>Pay <span id="pay-amount">₹{{ batch.price }}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const applyBtn = document.getElementById('apply-referral');
+    const referralInput = document.getElementById('referral_code');
+    const messageDiv = document.getElementById('referral-message');
+    const discountInfo = document.getElementById('discount-info');
+    const discountAmount = document.getElementById('discount-amount');
+    const finalAmount = document.getElementById('final-amount');
+    const payAmount = document.getElementById('pay-amount');
+    const originalPrice = {{ batch.price }};
+    
+    applyBtn.addEventListener('click', function() {
+        const code = referralInput.value.trim();
+        if (!code) {
+            messageDiv.innerHTML = '<span class="text-danger">Please enter a referral code</span>';
+            return;
+        }
+        
+        fetch('{% url "batches:validate_referral" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                'referral_code': code,
+                'batch_price': originalPrice
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                const discount = data.discount_amount;
+                const final = originalPrice - discount;
+                
+                discountAmount.textContent = `-₹${discount}`;
+                finalAmount.textContent = `₹${final}`;
+                payAmount.textContent = `₹${final}`;
+                discountInfo.style.display = 'block';
+                
+                messageDiv.innerHTML = `<span class="text-success">Referral code applied! You save ₹${discount}</span>`;
+                applyBtn.textContent = 'Applied';
+                applyBtn.disabled = true;
+                referralInput.disabled = true;
+            } else {
+                messageDiv.innerHTML = `<span class="text-danger">${data.message}</span>`;
+            }
+        })
+        .catch(error => {
+            messageDiv.innerHTML = '<span class="text-danger">Error validating referral code</span>';
+        });
+    });
+});
+</script>
+{% endblock %}

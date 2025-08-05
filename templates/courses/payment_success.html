@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Successful - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-success">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle fa-5x text-success"></i>
+                    </div>
+                    
+                    <h2 class="text-success mb-3">Payment Successful!</h2>
+                    <p class="lead mb-4">Thank you for enrolling with Smart Study. Your payment has been processed successfully.</p>
+                    
+                    <div class="alert alert-success">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You now have full access to all course materials and features included in your plan.
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary">
+                            <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                        </a>
+                        <a href="{% url 'courses:list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-book me-2"></i>Browse Courses
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

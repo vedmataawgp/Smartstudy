@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Dashboard - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chalkboard-teacher me-2"></i>Teacher Dashboard</h2>
+                <a href="{% url 'doubts:list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-list me-2"></i>All Doubts
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <i class="fas fa-hourglass-half fa-3x text-warning mb-3"></i>
+                    <h3>{{ total_pending }}</h3>
+                    <p class="text-muted mb-0">Pending Assignment</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-3x text-info mb-3"></i>
+                    <h3>{{ total_assigned }}</h3>
+                    <p class="text-muted mb-0">Assigned to Me</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h3>{{ total_resolved }}</h3>
+                    <p class="text-muted mb-0">Resolved by Me</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Pending Doubts -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-hourglass-half me-2"></i>Pending Assignment ({{ pending_doubts.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_doubts %}
+                        {% for doubt in pending_doubts|slice:":5" %}
+                        <div class="border-bottom pb-3 mb-3 {% if not forloop.last %}{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6>
+                                        <a href="{% url 'doubts:detail' doubt.id %}" class="text-decoration-none">
+                                            {{ doubt.title|truncatechars:40 }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted small mb-2">{{ doubt.description|truncatewords:15 }}</p>
+                                    <div class="d-flex align-items-center text-muted">
+                                        <small>
+                                            <i class="fas fa-user me-1"></i>{{ doubt.user.get_full_name|default:doubt.user.username }}
+                                        </small>
+                                        <span class="mx-2">•</span>
+                                        <small>
+                                            <i class="fas fa-clock me-1"></i>{{ doubt.created_at|timesince }} ago
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="doubt_id" value="{{ doubt.id }}">
+                                    <input type="hidden" name="action" value="assign_to_me">
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-hand-paper me-1"></i>Assign to Me
+                                    </button>
+                                </form>
+                                <a href="{% url 'doubts:detail' doubt.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if pending_doubts.count > 5 %}
+                        <div class="text-center">
+                            <a href="{% url 'doubts:list' %}?status=submitted" class="btn btn-outline-warning btn-sm">
+                                View All {{ pending_doubts.count }} Pending Doubts
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No pending doubts to assign</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- My Assigned Doubts -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>My Assigned Doubts ({{ my_assigned_doubts.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if my_assigned_doubts %}
+                        {% for doubt in my_assigned_doubts|slice:":5" %}
+                        <div class="border-bottom pb-3 mb-3 {% if not forloop.last %}{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6>
+                                        <a href="{% url 'doubts:detail' doubt.id %}" class="text-decoration-none">
+                                            {{ doubt.title|truncatechars:40 }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted small mb-2">{{ doubt.description|truncatewords:15 }}</p>
+                                    <div class="d-flex align-items-center text-muted">
+                                        <small>
+                                            <i class="fas fa-user me-1"></i>{{ doubt.user.get_full_name|default:doubt.user.username }}
+                                        </small>
+                                        <span class="mx-2">•</span>
+                                        <small>
+                                            <i class="fas fa-clock me-1"></i>{{ doubt.created_at|timesince }} ago
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <a href="{% url 'doubts:resolve' doubt.id %}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-check me-1"></i>Resolve
+                                </a>
+                                <a href="{% url 'doubts:detail' doubt.id %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if my_assigned_doubts.count > 5 %}
+                        <div class="text-center">
+                            <a href="{% url 'doubts:list' %}?status=in_progress" class="btn btn-outline-info btn-sm">
+                                View All {{ my_assigned_doubts.count }} Assigned Doubts
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-clipboard-list fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No doubts assigned to you</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recently Resolved -->
+    {% if recently_resolved %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Recently Resolved by Me
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Doubt Title</th>
+                                    <th>Student</th>
+                                    <th>Submitted</th>
+                                    <th>Resolved</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doubt in recently_resolved %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'doubts:detail' doubt.id %}" class="text-decoration-none">
+                                            {{ doubt.title|truncatechars:50 }}
+                                        </a>
+                                    </td>
+                                    <td>{{ doubt.user.get_full_name|default:doubt.user.username }}</td>
+                                    <td>{{ doubt.created_at|date:"M d, Y" }}</td>
+                                    <td>{{ doubt.resolved_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'doubts:detail' doubt.id %}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'doubts:list' %}?status=resolved" class="btn btn-outline-success">
+                            View All Resolved Doubts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

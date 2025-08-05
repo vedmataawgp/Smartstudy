@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This is a demo payment system. No actual payment will be processed.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Order Summary -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Order Summary</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Plan:</span>
+                                    <span id="selected-plan">-</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Class:</span>
+                                    <span id="selected-class">-</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Stream:</span>
+                                    <span id="selected-stream">-</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <strong>Total Amount:</strong>
+                                    <strong id="total-amount">₹0</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Form -->
+                        <div class="mb-3">
+                            <label for="card_number" class="form-label">Card Number</label>
+                            <input type="text" class="form-control" id="card_number" placeholder="1234 5678 9012 3456" maxlength="19">
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="expiry" class="form-label">Expiry Date</label>
+                                    <input type="text" class="form-control" id="expiry" placeholder="MM/YY" maxlength="5">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="cvv" class="form-label">CVV</label>
+                                    <input type="text" class="form-control" id="cvv" placeholder="123" maxlength="3">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="cardholder_name" class="form-label">Cardholder Name</label>
+                            <input type="text" class="form-control" id="cardholder_name" placeholder="John Doe">
+                        </div>
+
+                        <!-- Hidden fields to pass enrollment data -->
+                        <input type="hidden" name="course_type" id="course_type">
+                        <input type="hidden" name="class_level" id="class_level">
+                        <input type="hidden" name="stream" id="stream_field">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'courses:enrollment' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-lock me-2"></i>Complete Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get values from context or URL parameters
+    const courseType = '{{ course_type }}';
+    const classLevel = '{{ class_level }}';
+    const stream = '{{ stream }}';
+
+    // Update form fields
+    document.getElementById('course_type').value = courseType;
+    document.getElementById('class_level').value = classLevel;
+    document.getElementById('stream_field').value = stream;
+
+    // Update display
+    document.getElementById('selected-plan').textContent = courseType.charAt(0).toUpperCase() + courseType.slice(1) + ' Plan';
+    document.getElementById('selected-class').textContent = classLevel;
+    document.getElementById('selected-stream').textContent = stream;
+    
+    const amount = courseType === 'premium' ? '₹1,299' : '₹799';
+    document.getElementById('total-amount').textContent = amount;
+
+    // Format card number input
+    document.getElementById('card_number').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+        let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+        e.target.value = formattedValue;
+    });
+
+    // Format expiry date input
+    document.getElementById('expiry').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        }
+        e.target.value = value;
+    });
+
+    // Only allow numbers in CVV
+    document.getElementById('cvv').addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+});
+</script>
+{% endblock %}

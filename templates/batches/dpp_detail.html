@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ dpp.title }} - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-warning text-dark rounded-circle p-3 me-3">
+                            <i class="fas fa-clipboard-list fa-2x"></i>
+                        </div>
+                        <div>
+                            <h1 class="mb-0">{{ dpp.title }}</h1>
+                            <p class="text-muted mb-0">{{ dpp.lecture.topic_name }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if dpp.description %}
+                        <p class="lead">{{ dpp.description }}</p>
+                    {% endif %}
+                    
+                    <div class="row text-center mb-4">
+                        <div class="col-md-3">
+                            <div class="border-end">
+                                <div class="display-6 text-primary">{{ questions_count }}</div>
+                                <small class="text-muted">Questions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border-end">
+                                <div class="display-6 text-success">{{ dpp.total_marks }}</div>
+                                <small class="text-muted">Total Marks</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border-end">
+                                <div class="display-6 text-warning">{{ dpp.time_limit_minutes }}</div>
+                                <small class="text-muted">Minutes</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="display-6 text-info">{{ user_attempts.count }}</div>
+                            <small class="text-muted">Your Attempts</small>
+                        </div>
+                    </div>
+
+                    {% if not has_attempted %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Instructions:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>You have {{ dpp.time_limit_minutes }} minutes to complete this DPP</li>
+                            <li>Each question carries different marks as specified</li>
+                            <li>Once started, the timer cannot be paused</li>
+                            <li>Make sure you have a stable internet connection</li>
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2">
+                        <form method="post" action="{% url 'batches:start_dpp' dpp.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-play me-2"></i>Start DPP
+                            </button>
+                        </form>
+                        
+                        {% if dpp.solution %}
+                        <a href="{% url 'batches:dpp_solution' dpp.solution.id %}" class="btn btn-outline-success btn-lg">
+                            <i class="fas fa-lightbulb me-2"></i>View Solutions
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            {% if user_attempts %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Your Previous Attempts</h5>
+                </div>
+                <div class="card-body">
+                    {% for attempt in user_attempts|slice:":5" %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <div class="fw-bold">{{ attempt.score }}/{{ attempt.total_marks }}</div>
+                            <small class="text-muted">{{ attempt.completed_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="badge bg-{% if attempt.percentage >= 80 %}success{% elif attempt.percentage >= 60 %}warning{% else %}danger{% endif %}">
+                                {{ attempt.percentage|floatformat:1 }}%
+                            </div>
+                            <br>
+                            <a href="{% url 'batches:dpp_results' attempt.id %}" class="btn btn-outline-primary btn-sm mt-1">
+                                View Results
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <h5>Ready to Start?</h5>
+                    <p class="text-muted">This will be your first attempt at this DPP. Good luck!</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

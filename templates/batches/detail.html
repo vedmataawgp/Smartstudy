@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ batch.name }} - Smart Study{% endblock %}
+{% block extra_css %}
+   <link href="{% static 'css/batch_detail.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Left Side Content -->
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <h1 class="fw-bold">{{ batch.name }}</h1>
+                <p class="text-muted fs-5">for <strong>{{ batch.category.name }}</strong> aspirants</p>
+            </div>
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs mb-4" id="batchTab" role="tablist">
+                <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#features">Features</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#about">About</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#schedule">Schedule</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#teachers">Teachers</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#demo">Demo</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#more">More Details</a></li>
+                <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#faq">FAQs</a></li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="features">
+                    <h5>All Batch Features</h5>
+                    <p>{{ batch.description }}</p>
+                </div>
+
+                <div class="tab-pane fade" id="about">
+                    <h5>About the Batch</h5>
+                    <p><strong>Duration:</strong> {{ batch.start_date }} to {{ batch.end_date }}</p>
+                    <p><strong>Mode:</strong> {{ batch.mode|default:"Online" }}</p>
+                </div>
+
+                <div class="tab-pane fade" id="schedule">
+                    <h5>Schedule</h5>
+                    {% for subject in batch.subjects.all %}
+                        <p><strong>{{ subject.name }}</strong> - Teacher: {{ subject.teacher.name }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="tab-pane fade" id="teachers">
+                    <h5>Teachers</h5>
+                    <div class="row">
+                        {% for teacher in batch.teachers.all %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <img src="{{ teacher.image.url }}" class="card-img-top" alt="{{ teacher.name }}">
+                                <div class="card-body">
+                                    <h6>{{ teacher.name }}</h6>
+                                    <p class="text-muted small">{{ teacher.subject }} - {{ teacher.experience }} years experience</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="demo">
+                    <h5>Demo Lectures</h5>
+                    <ul>
+                        {% for demo in batch.demos.all %}
+                        <li>{{ demo.subject }} - <a href="{{ demo.video_url }}" target="_blank">Watch Demo</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="tab-pane fade" id="more">
+                    <h5>Additional Details</h5>
+                    <p>Subject-wise breakdown, planner, access duration, resources etc.</p>
+                </div>
+
+                <div class="tab-pane fade" id="faq">
+                    <h5>FAQs</h5>
+                    <ul>
+                        {% for faq in batch.faqs.all %}
+                        <li><strong>{{ faq.question }}</strong><br>{{ faq.answer }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side Summary -->
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    <img src="{{ batch.image.url }}" class="img-fluid mb-3 rounded" alt="Batch Image">
+                    <h5>{{ batch.name }}</h5>
+                    <p class="text-muted">For {{ batch.category.name }} Aspirants</p>
+                    <p><i class="fas fa-calendar-alt me-1"></i> Starts on {{ batch.start_date }} & Ends on {{ batch.end_date }}</p>
+                    <h4 class="text-primary">₹{{ batch.price }} {% if batch.original_price %}<del class="text-muted">₹{{ batch.original_price }}</del>{% endif %}</h4>
+                    {% if batch.discount_percent %}<p class="text-success">Discount of {{ batch.discount_percent }}% applied</p>{% endif %}
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'batches:purchase' batch.id %}" class="btn btn-primary">Continue with Batch</a>
+                        <a href="tel:{{ contact_number }}" class="btn btn-outline-secondary">Call</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

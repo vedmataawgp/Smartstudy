@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Smart Study - Modern Education Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Transform Your Learning Journey</h1>
+                <p class="lead mb-4">Access premium quality education for classes 9th-12th across Science, NEET, and JEE streams at just ₹1299/year.</p>
+                <div class="d-flex gap-3">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg">Start Learning</a>
+                        <a href="{% url 'main:pricing' %}" class="btn btn-outline-light btn-lg">View Pricing</a>
+                    {% else %}
+                        <a href="{% url 'accounts:dashboard' %}" class="btn btn-light btn-lg">Go to Dashboard</a>
+                        <a href="{% url 'courses:list' %}" class="btn btn-outline-light btn-lg">Browse Courses</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-graduation-cap" style="font-size: 8rem; opacity: 0.8;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="fw-bold mb-3">Why Choose Smart Study?</h2>
+                <p class="text-muted">We provide comprehensive learning solutions designed specifically for Indian students</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-video text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5>Recorded Lectures</h5>
+                    <p class="text-muted">High-quality video lectures by expert teachers, available 24/7</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-file-pdf text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5>Study Materials</h5>
+                    <p class="text-muted">Comprehensive PDF notes and study materials for all subjects</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-question-circle text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5>Interactive Quizzes</h5>
+                    <p class="text-muted">Test your knowledge with timed quizzes and track your progress</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="card feature-card h-100 text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-comments text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5>Doubt Resolution</h5>
+                    <p class="text-muted">Get your doubts resolved quickly by our expert teachers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <div class="mb-3">
+                    <i class="fas fa-book text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h3 class="fw-bold">{{ total_subjects }}+</h3>
+                <p class="text-muted">Subjects Available</p>
+            </div>
+            <div class="col-md-3">
+                <div class="mb-3">
+                    <i class="fas fa-play text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h3 class="fw-bold">{{ total_lectures }}+</h3>
+                <p class="text-muted">Video Lectures</p>
+            </div>
+            <div class="col-md-3">
+                <div class="mb-3">
+                    <i class="fas fa-clipboard-list text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h3 class="fw-bold">{{ total_quizzes }}+</h3>
+                <p class="text-muted">Practice Quizzes</p>
+            </div>
+            <div class="col-md-3">
+                <div class="mb-3">
+                    <i class="fas fa-users text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h3 class="fw-bold">10,000+</h3>
+                <p class="text-muted">Happy Students</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Subjects -->
+{% if featured_subjects %}
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="fw-bold mb-3">Featured Subjects</h2>
+                <p class="text-muted">Explore our comprehensive curriculum across different streams</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {% for subject in featured_subjects %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary text-white rounded-circle p-2 me-3">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">{{ subject.name }}</h5>
+                                <small class="text-muted">{{ subject.class_level }} {{ subject.stream }}</small>
+                            </div>
+                        </div>
+                        <p class="card-text">{{ subject.description|truncatewords:15 }}</p>
+                        <a href="{% url 'courses:subject_detail' subject.id %}" class="btn btn-outline-primary">View Subject</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'courses:list' %}" class="btn btn-primary btn-lg">View All Courses</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="fw-bold mb-3">Ready to Start Your Learning Journey?</h2>
+                <p class="lead mb-4">Join thousands of students who are already excelling with Smart Study</p>
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg me-3">Get Started Now</a>
+                    <a href="{% url 'main:contact' %}" class="btn btn-outline-light btn-lg">Contact Us</a>
+                {% else %}
+                    <a href="{% url 'courses:list' %}" class="btn btn-light btn-lg me-3">Browse Courses</a>
+                    <a href="{% url 'doubts:submit' %}" class="btn btn-outline-light btn-lg">Submit a Doubt</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

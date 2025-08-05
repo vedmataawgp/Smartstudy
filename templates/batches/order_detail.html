@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Order {{ order.order_id }} - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-{% if order.payment_status == 'successful' %}success{% elif order.payment_status == 'failed' %}danger{% else %}warning{% endif %} text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-receipt me-2"></i>Order Invoice
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Order Details</h6>
+                            <p class="mb-1"><strong>Order ID:</strong> {{ order.order_id }}</p>
+                            <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+                            <p class="mb-1"><strong>Payment Date:</strong> 
+                                {% if order.payment_date %}{{ order.payment_date|date:"M d, Y H:i" }}{% else %}N/A{% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Student Information</h6>
+                            <p class="mb-1"><strong>Name:</strong> {{ order.user.get_full_name|default:order.user.username }}</p>
+                            <p class="mb-1"><strong>Email:</strong> {{ order.user.email }}</p>
+                            <p class="mb-1"><strong>Username:</strong> {{ order.user.username }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive mb-4">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ order.batch.name }}</td>
+                                    <td>{{ order.batch.category.name }}</td>
+                                    <td class="text-end">₹{{ order.original_amount }}</td>
+                                </tr>
+                                {% if order.discount_amount > 0 %}
+                                <tr class="text-success">
+                                    <td colspan="2">Discount ({{ order.referral_code }})</td>
+                                    <td class="text-end">-₹{{ order.discount_amount }}</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-active">
+                                    <th colspan="2">Total Amount</th>
+                                    <th class="text-end">₹{{ order.amount }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Payment Information</h6>
+                            <p class="mb-1"><strong>Payment Mode:</strong> {{ order.get_payment_mode_display }}</p>
+                            <p class="mb-1"><strong>Payment Status:</strong> 
+                                <span class="badge bg-{% if order.payment_status == 'successful' %}success{% elif order.payment_status == 'failed' %}danger{% else %}warning{% endif %}">
+                                    {{ order.get_payment_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        {% if order.referral_code %}
+                        <div class="col-md-6">
+                            <h6>Referral Information</h6>
+                            <p class="mb-1"><strong>Referral Code:</strong> {{ order.referral_code }}</p>
+                            {% if order.sales_executive %}
+                            <p class="mb-1"><strong>Sales Executive:</strong> {{ order.sales_executive.user.get_full_name }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-center">
+                        {% if order.payment_status == 'successful' %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Payment completed successfully! You can now access the batch content.
+                            </div>
+                            <a href="{% url 'batches:my_batches' %}" class="btn btn-success me-2">
+                                <i class="fas fa-graduation-cap me-2"></i>Go to My Batches
+                            </a>
+                        {% elif order.payment_status == 'failed' %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Payment failed. Please contact support if you need assistance.
+                            </div>
+                            <a href="mailto:support@smartstudy.com?subject=Issue with Order {{ order.order_id }}" class="btn btn-danger me-2">
+                                <i class="fas fa-envelope me-2"></i>Raise Issue
+                            </a>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-clock me-2"></i>
+                                Payment is pending. Please wait for confirmation.
+                            </div>
+                        {% endif %}
+                        
+                        <a href="{% url 'batches:list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Batches
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

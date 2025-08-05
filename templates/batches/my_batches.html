@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}My Batches - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-user-graduate me-2"></i>My Batches</h2>
+            <p class="text-muted">Access your enrolled batches and track your progress</p>
+        </div>
+    </div>
+
+    {% if enrollments %}
+    <div class="row g-4">
+        {% for enrollment in enrollments %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title">{{ enrollment.batch.name }}</h5>
+                        <span class="badge bg-primary">{{ enrollment.batch.category.name }}</span>
+                    </div>
+                    
+                    <p class="card-text text-muted">{{ enrollment.batch.description|truncatewords:10 }}</p>
+                    
+                    <div class="mb-3">
+                        <h6>Subjects:</h6>
+                        {% for subject in enrollment.batch.subjects.all %}
+                            <span class="badge bg-light text-dark me-1 mb-1">{{ subject.name }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            Enrolled: {{ enrollment.enrolled_at|date:"M d, Y" }}
+                        </small>
+                        <a href="{% url 'batches:content' enrollment.batch.id %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-play me-1"></i>Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+        <h4>No batches enrolled</h4>
+        <p class="text-muted">Enroll in batches to start your learning journey.</p>
+        <a href="{% url 'batches:list' %}" class="btn btn-primary">Browse Batches</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

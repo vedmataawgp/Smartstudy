@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales Dashboard - Smart Study{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-line me-2"></i>Sales Dashboard</h2>
+    </div>
+    
+    <!-- Overall Stats -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ total_referral_orders }}</h4>
+                            <p class="mb-0">Total Referral Orders</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-shopping-cart fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>₹{{ total_referral_revenue }}</h4>
+                            <p class="mb-0">Total Referral Revenue</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-rupee-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sales Executives Performance -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Sales Executive Performance</h5>
+        </div>
+        <div class="card-body">
+            {% if sales_data %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Sales Executive</th>
+                            <th>Employee ID</th>
+                            <th>Active Codes</th>
+                            <th>Total Orders</th>
+                            <th>Total Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in sales_data %}
+                        <tr>
+                            <td>
+                                <div>
+                                    <strong>{{ data.executive.user.get_full_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ data.executive.user.email }}</small>
+                                </div>
+                            </td>
+                            <td>{{ data.executive.employee_id }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ data.referral_codes }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ data.total_orders }}</span>
+                            </td>
+                            <td>
+                                <strong class="text-success">₹{{ data.total_amount }}</strong>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No sales executives found.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
